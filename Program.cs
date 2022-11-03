@@ -65,14 +65,10 @@ namespace A04_Tasks
             return 0;
         }
 
-        /*  -- Method Header Comment
-	    Name	: WokerFile
-	    Purpose : this property will return and set the data member (interestRate).
-	    Inputs	:	a string    filePath
-                    a double    fileSize
-	    Outputs	:	NONE
-	    Returns	:	NONE
-        */
+        
+
+
+
         static void WokerFile(string filePath, double fileSize)
         {
             double length = 0;
