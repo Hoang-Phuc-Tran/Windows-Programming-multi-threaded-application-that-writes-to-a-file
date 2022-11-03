@@ -122,6 +122,58 @@ namespace A04_Tasks
                         }
                     }
                     // If the file does not exist
+                    else
+                    {
+                        // Check if we can create a new file
+                        try
+                        {
+                            File.WriteAllText(path, string.Empty);
+
+                            // This task monitor the size of the file at 0.5 second intervals
+                            Task.Factory.StartNew(() =>
+                            {
+                                // Check if the file is lower than the expected size
+                                while (length < sizeOfFile)
+                                {
+                                    length = new System.IO.FileInfo(path).Length;
+                                    Console.WriteLine(length);
+                                    System.Threading.Thread.Sleep(500);
+                                }
+                                if (length > sizeOfFile)
+                                {
+                                    Console.WriteLine("The final size of the file is " + length);
+                                }
+                            });
+
+                            // Create 25 tasks
+                            for (int i = 0; i < maximumTasks; i++)
+                            {
+                                // Using mutex to limit tasks acess the file
+                                if (mutex.WaitOne())
+                                {
+                                    try
+                                    {
+                                        var task = new Task(() => WokerFile(path, sizeOfFile));
+                                        task.Start();
+                                        TaskList.Add(task);
+                                    }
+                                    finally
+                                    {
+                                        mutex.ReleaseMutex();
+                                    }
+                                }
+                            }
+                            // Wait all tasks complete
+                            Task.WhenAll(TaskList.ToArray());
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine("The pathname of the file is incorrect.");
+                            Console.WriteLine("Type /? for more information.\n");
+                            return -1;
+                        }
+                        
+                    }
                     
                 }
                 else
