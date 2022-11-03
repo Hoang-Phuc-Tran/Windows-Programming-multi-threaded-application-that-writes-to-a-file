@@ -56,8 +56,19 @@ namespace A04_Tasks
                 var isNumeric = double.TryParse(args[1], out double size);
                 sizeOfFile = size;
 
+                if(checkFullPath == false && (isNumeric == false || size < 1000 || size > 20000000))
+                {
+                    Console.WriteLine("The pathname of the file is incorrect.");
+                    Console.WriteLine("Your size of the file is not correct.");
+                    Console.WriteLine("Type /? for more information.\n");
+                }
+                else if(checkFullPath == false)
+                {
+                    Console.WriteLine("The pathname of the file is incorrect.");
+                    Console.WriteLine("Type /? for more information.\n");
+                }
                 // Check if 2 agruments are correct
-                if (isNumeric == true && size >= 1000 && size <= 20000000 && checkFullPath == true)
+                else if (isNumeric == true && size >= 1000 && size <= 20000000 && checkFullPath == true)
                 {
                     // Check if the file exists
                     if (File.Exists(path))
@@ -178,7 +189,7 @@ namespace A04_Tasks
                 }
                 else
                 {
-                    Console.WriteLine("Your arguments are not correct.");
+                    Console.WriteLine("Your size of the file is not correct.");
                     Console.WriteLine("Type /? for more information.\n");
                 }
             }
