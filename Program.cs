@@ -79,7 +79,76 @@ namespace A04_Tasks
                 else if (isNumeric == true && size >= 1000 && size <= 20000000 && checkFullPath == true)
                 {
                     // Check if a file exist or not
-                    
+                    if (File.Exists(path))
+                    {
+                        Console.WriteLine("The file already exists, Do you want to overwrite? [y/n]");
+                        string userInput = Console.ReadLine();
+
+
+                        if (userInput == "y")
+                        {
+                        // Validate the pathname of the file
+                            try
+                            {
+                                 File.WriteAllText(path, string.Empty);
+                            }
+                            catch
+                            {
+                                Console.WriteLine("The pathname of the file is incorrect.");
+                                Console.WriteLine("Type /? for more information.\n");
+                               return -1;
+                            }
+                            monitor = new Task(() => fileIO.monitor(path, sizeOfFile, tasks));
+                            monitor.Start();
+
+                            // use 25 identical Tasks to write to the single file
+                            for (int i = 0; i < maximumTasks; i++)
+                            {
+                                tasks[i] = new Task(() => fileIO.WriteToFile(path));
+                                tasks[i].Start();
+                            }
+                        }
+                        else if (userInput == "n")
+                        {
+                            monitor = new Task(() => fileIO.monitor(path, sizeOfFile, tasks));
+                            monitor.Start();
+
+                            // use 25 identical Tasks to write to the single file
+                            for (int i = 0; i < maximumTasks; i++)
+                            {
+                                tasks[i] = new Task(() => fileIO.WriteToFile(path));
+                                tasks[i].Start();
+                            }
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        // Validate the pathname of the file
+                        try
+                        {
+                            File.WriteAllText(path, string.Empty);
+                        }
+                        catch
+                        {
+                            Console.WriteLine("The pathname of the file is incorrect.");
+                            Console.WriteLine("Type /? for more information.\n");
+                            return -1;
+                        }
+
+                        monitor = new Task(() => fileIO.monitor(path, sizeOfFile, tasks));
+                        monitor.Start();
+
+                        // use 25 identical Tasks to write to the single file
+                        for (int i = 0; i < maximumTasks; i++)
+                        {
+                            tasks[i] = new Task(() => fileIO.WriteToFile(path));
+                            tasks[i].Start();
+                        }
+                    }
                     
                 }
                 else
