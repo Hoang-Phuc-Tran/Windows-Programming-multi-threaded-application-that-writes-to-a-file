@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
 
+
 namespace A04_Tasks
 {
     /*
@@ -26,20 +27,25 @@ namespace A04_Tasks
     {
         static int Main(string[] args)
         {
-            // Create mutex
-            Mutex mutex = new Mutex();
-
-            // A list contains tasks
-            List<Task> TaskList = new List<Task>();
-
             // Maximum tasks
             const int maximumTasks = 25;
+            
+            // tasks
+            Task[] tasks;
+            tasks = new Task[maximumTasks];
+            Task monitor;
 
+            // Create a FileNew class
+            FileNew fileIO = new FileNew();
+
+            // Check if the expected size is reached
+            fileIO.validateSize = false;
+           
             var checkFullPath = false;
-            double length = 0;
+            //double length = 0;
 
             // Size of file
-            double sizeOfFile = 0;
+            int sizeOfFile = 0;
 
             // The pathname of a file
             string path;
@@ -53,16 +59,18 @@ namespace A04_Tasks
                 checkFullPath = Path.IsPathRooted(path);
 
                 // Convert string to double
-                var isNumeric = double.TryParse(args[1], out double size);
+                var isNumeric = Int32.TryParse(args[1], out int size);
                 sizeOfFile = size;
 
-                if(checkFullPath == false && (isNumeric == false || size < 1000 || size > 20000000))
+                // Check the pathname of a file and the size of the file
+                if (checkFullPath == false && (isNumeric == false || size < 1000 || size > 20000000))
                 {
                     Console.WriteLine("The pathname of the file is incorrect.");
                     Console.WriteLine("Your size of the file is not correct.");
                     Console.WriteLine("Type /? for more information.\n");
                 }
-                else if(checkFullPath == false)
+                // Check the pathname of the file
+                else if (checkFullPath == false)
                 {
                     Console.WriteLine("The pathname of the file is incorrect.");
                     Console.WriteLine("Type /? for more information.\n");
@@ -70,121 +78,8 @@ namespace A04_Tasks
                 // Check if 2 agruments are correct
                 else if (isNumeric == true && size >= 1000 && size <= 20000000 && checkFullPath == true)
                 {
-                    // Check if the file exists
-                    if (File.Exists(path))
-                    {
-                        Console.WriteLine("The file already exists, Do you want to overwrite? [y/n]");
-
-                        string userInput = Console.ReadLine();
-                        
-                        // User wants to overrite the file
-                        if (userInput == "y" || userInput == "Y")
-                        {
-                            // This task monitor the size of the file at 0.5 second intervals
-                            Task.Factory.StartNew(() =>
-                            {
-                                // Check if the file is lower than the expected size
-                                while (length < sizeOfFile)
-                                {
-                                    length = new System.IO.FileInfo(path).Length;
-                                    Console.WriteLine(length);
-                                    System.Threading.Thread.Sleep(500);
-                                }
-                                if (length > sizeOfFile)
-                                {
-                                    Console.WriteLine("The final size of the file is " + length);
-                                }
-                            });
-
-                            try
-                            {
-                                // clear the file
-                                File.WriteAllText(path, string.Empty);
-                            }
-                            catch (Exception)
-                            {
-                                Console.WriteLine("The pathname of the file is incorrect.");
-                                Console.WriteLine("Type /? for more information.\n");
-                                return -1;
-                            }
-
-                            // Create 25 tasks
-                            for (int i = 0; i < maximumTasks; i++)
-                            {
-                                // Using mutex to limit tasks acess the file 
-                                if (mutex.WaitOne())
-                                {
-                                    // using try and finally to release the mutex
-                                    try
-                                    {
-                                        var task = new Task(() => WokerFile(path, sizeOfFile));
-                                        task.Start();
-                                        TaskList.Add(task);
-                                    }
-                                    //Release the mutex
-                                    finally
-                                    {
-                                        mutex.ReleaseMutex();
-                                    }
-                                }
-                            }                          
-                            // Wait all tasks complete
-                            Task.WhenAll(TaskList.ToArray());
-                        }
-                    }
-                    // If the file does not exist
-                    else
-                    {
-                        // Check if we can create a new file
-                        try
-                        {
-                            File.WriteAllText(path, string.Empty);
-
-                            // This task monitor the size of the file at 0.5 second intervals
-                            Task.Factory.StartNew(() =>
-                            {
-                                // Check if the file is lower than the expected size
-                                while (length < sizeOfFile)
-                                {
-                                    length = new System.IO.FileInfo(path).Length;
-                                    Console.WriteLine(length);
-                                    System.Threading.Thread.Sleep(500);
-                                }
-                                if (length > sizeOfFile)
-                                {
-                                    Console.WriteLine("The final size of the file is " + length);
-                                }
-                            });
-
-                            // Create 25 tasks
-                            for (int i = 0; i < maximumTasks; i++)
-                            {
-                                // Using mutex to limit tasks acess the file
-                                if (mutex.WaitOne())
-                                {
-                                    try
-                                    {
-                                        var task = new Task(() => WokerFile(path, sizeOfFile));
-                                        task.Start();
-                                        TaskList.Add(task);
-                                    }
-                                    finally
-                                    {
-                                        mutex.ReleaseMutex();
-                                    }
-                                }
-                            }
-                            // Wait all tasks complete
-                            Task.WhenAll(TaskList.ToArray());
-                        }
-                        catch (Exception)
-                        {
-                            Console.WriteLine("The pathname of the file is incorrect.");
-                            Console.WriteLine("Type /? for more information.\n");
-                            return -1;
-                        }
-                        
-                    }
+                    // Check if a file exist or not
+                    
                     
                 }
                 else
@@ -207,28 +102,6 @@ namespace A04_Tasks
             }
             Console.ReadKey();
             return 0;
-        }
-
-        /*  -- Method Header Comment
-	    Name	: WokerFile
-	    Purpose : this property will return and set the data member (interestRate).
-	    Inputs	:	a string    filePath
-                    a double    fileSize
-	    Outputs	:	NONE
-	    Returns	:	NONE
-        */
-        static void WokerFile(string filePath, double fileSize)
-        {
-            double length = 0;
-            while (length < fileSize)
-            {
-                // Create a new guid
-                string guid = Guid.NewGuid().ToString();
-                // Append the guid to a file
-                File.AppendAllText(filePath, guid);
-                length = new System.IO.FileInfo(filePath).Length;
-                System.Threading.Thread.Sleep(100);
-            }
         }
     }
 }
